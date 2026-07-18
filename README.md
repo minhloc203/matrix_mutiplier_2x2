@@ -1,17 +1,18 @@
-PE.v	: Định nghĩa một Processing Element (PE). Đây là khối tính toán cơ bản, thực hiện phép nhân và cộng dồn (MAC) cho dữ liệu ma trận.
+**PE.v**: Định nghĩa một Processing Element (PE), là khối tính toán cơ bản của mảng systolic. Mỗi PE nhận một phần tử của ma trận A và một phần tử của ma trận B, thực hiện phép nhân rồi cộng dồn vào thanh ghi kết quả theo công thức MAC: accumulator = accumulator + A×B. Đầu vào là số có dấu 8 bit; kết quả phép nhân cần 16 bit và giá trị cộng dồn dùng 17 bit để tránh tràn số. PE cũng truyền dữ liệu A theo chiều ngang và dữ liệu B theo chiều dọc sang PE kế tiếp ở mỗi chu kỳ clock.
 
-SystolicArray2x2.v: Module chính của thiết kế. File này ghép 4 PE thành mảng systolic 2×2 để thực hiện phép nhân hai ma trận 2×2 theo kiến trúc xử lý song song.
+**SystolicArray2x2.v**: Là module chính của thiết kế, ghép 4 PE thành mảng systolic 2×2 để nhân hai ma trận A(2×2) và B(2×2). Bốn PE hoạt động song song và tạo ra bốn phần tử C00, C01, C10, C11 của ma trận kết quả. Mỗi phần tử C được tính từ 2 phép nhân và 1 phép cộng, ví dụ C00 = A00×B00 + A01×B10. Module này điều khiển đường truyền dữ liệu giữa các PE, tín hiệu clock/reset và xuất ma trận kết quả 17 bit. Đây là phần RTL chính có thể tổng hợp để triển khai trên FPGA.
 
-matrix_mult_2x2_tb.v : Testbench dùng để mô phỏng. File này đưa các phần tử của hai ma trận vào thiết kế, tạo clock/reset và xuất kết quả mô phỏng ra file hoặc màn hình ModelSim. Không nạp file này vào FPGA. 
+**matrix_mult_2x2_tb.v**: Là testbench dùng để kiểm tra thiết kế trên ModelSim. File tạo tín hiệu clock và reset, đọc các ma trận A, B từ input_vectors.txt rồi đưa dữ liệu vào SystolicArray2x2.v theo đúng từng chu kỳ. Sau khi mạch tính xong, testbench thu bốn phần tử của ma trận C và in hoặc lưu kết quả mô phỏng để đối chiếu với Python. File này chỉ phục vụ mô phỏng, không được tổng hợp hoặc nạp vào FPGA.
 
-input_vectors.txt: Chứa các bộ dữ liệu đầu vào: các giá trị của ma trận A và B dùng cho từng test case. Testbench đọc file này để chạy nhiều phép thử tự động.
+**input_vectors.txt**: Chứa các bộ dữ liệu đầu vào cho testbench. Mỗi test case gồm 8 giá trị: bốn phần tử của ma trận A và bốn phần tử của ma trận B, nằm trong phạm vi số có dấu 8 bit từ -128 đến 127. Các bộ kiểm tra có thể gồm số dương, số âm, số 0, ma trận đơn vị, ma trận toàn số âm, giá trị lớn nhất/nhỏ nhất, kết quả bằng 0, trường hợp đổi dấu và trường hợp gần giới hạn tràn. Nhờ file này, testbench có thể chạy tự động nhiều phép thử mà không cần nhập dữ liệu thủ công.
 
-test_case_names.txt : Chứa tên hoặc nhãn của từng test case, giúp dễ theo dõi kết quả mô phỏng tương ứng với từng bộ ma trận đầu vào. 
+**test_case_names.txt**: Chứa tên hoặc nhãn mô tả của từng test case theo đúng thứ tự trong input_vectors.txt. Các nhãn giúp nhận biết bộ dữ liệu đang kiểm tra thuộc trường hợp nào, chẳng hạn số dương cơ bản, có số âm, ma trận đơn vị hoặc giá trị biên. Khi ModelSim in kết quả, tên test case giúp theo dõi và tìm nhanh trường hợp bị sai.
 
-matmul2x2.mpf: File project của ModelSim. Nó lưu danh sách file Verilog, thư viện và thiết lập mô phỏng để mở lại project nhanh chóng.
+**matmul2x2.mpf**: Là file project của ModelSim. File lưu danh sách các mã nguồn Verilog, testbench, thư viện work và thiết lập mô phỏng của dự án. Khi mở file này, người dùng có thể tiếp tục compile và chạy mô phỏng mà không cần tạo lại project từ đầu. File không chứa thuật toán nhân ma trận và cũng không phải file dùng để nạp lên FPGA.
+work/: Là thư mục thư viện làm việc do ModelSim tự tạo sau khi compile các module Verilog. Nó chứa dữ liệu trung gian đã biên dịch để chương trình mô phỏng có thể nạp và chạy thiết kế. Không nên chỉnh sửa thủ công thư mục này; nếu bị xóa, ModelSim có thể tạo lại khi compile project.
+**
+gen_test_vectors.py**: Là chương trình Python tạo dữ liệu kiểm tra cho dự án. Chương trình sinh các ma trận cố định hoặc ngẫu nhiên, kiểm tra mỗi phần tử có nằm trong phạm vi signed 8 bit và ghi dữ liệu vào input_vectors.txt. Nó đồng thời tạo nhiều trường hợp biên để kiểm tra đầy đủ khả năng xử lý số âm, số 0, giá trị lớn và nguy cơ tràn dữ liệu của mạch.
 
-gen_test_vectors.py: Chương trình Python sinh các ma trận kiểm tra, có thể gồm số dương, số âm, số 0 hoặc dữ liệu ngẫu nhiên; sau đó lưu vào input_vectors.txt.
+**show_matrices.py**: Là chương trình Python đọc dữ liệu và hiển thị các phần tử theo đúng dạng ma trận 2×2. File giúp người dùng quan sát rõ ma trận A, ma trận B và ma trận C thay vì đọc một dãy số liên tục, từ đó dễ kiểm tra hoặc trình bày kết quả hơn.
 
-show_matrices.py: Chương trình Python hiển thị các ma trận đầu vào và/hoặc ma trận kết quả theo định dạng dễ đọc trên màn hình.
-
-verify_results.py: Chương trình Python tính nhân ma trận bằng phần mềm, đọc kết quả từ mô phỏng rồi so sánh hai bên. In số lượng match, mismatch, và kết luận PASS hoặc FAIL.
+**verify_results.py**: Là chương trình kiểm chứng kết quả theo mô hình chuẩn (golden model). Python tự tính C = A×B bằng phần mềm, sau đó đọc kết quả do testbench/ModelSim tạo ra và so sánh từng phần tử C00, C01, C10, C11. Chương trình đếm số kết quả khớp (match), không khớp (mismatch) và kết luận PASS nếu tất cả test case đều đúng; nếu có sai lệch thì kết luận FAIL và chỉ ra trường hợp cần kiểm tra.
