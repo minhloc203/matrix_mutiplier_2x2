@@ -1,4 +1,4 @@
-# Signed INT8 2×2 Matrix Multiplier Using a Systolic Array on FPGA
+# 2×2 Matrix Multiplier Using a Systolic Array on FPGA
 
 A synthesizable Verilog RTL implementation of a signed 2×2 matrix multiplier using a four-cell systolic array. Matrix elements are represented as **signed INT8 values**, while every output element is accumulated in **signed 17-bit precision** to preserve the full mathematical result without overflow.
 
