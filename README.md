@@ -1,105 +1,141 @@
-## Authors 
+## Authors
 
-Võ Hoàng Minh Lộc . Trần thiên phúc 
-|Advisor: T.S. Phạm Thế Vinh|
-Khoa Vi mạch Bán dẫn – Ô tô, Phân hiệu Trường Đại học FPT tại TP.HCM, Việt Nam
+**Võ Hoàng Minh Lộc · Trần Thiên Phúc**  
+**Advisor:** Dr. Phạm Thế Vinh  
+Faculty of Semiconductor Integrated Circuits and Automotive Engineering, FPT University Ho Chi Minh City Campus, Vietnam
+
 ---
 
+# 2×2 Matrix Multiplier Using a Systolic Array
 
+**Technologies:** Verilog, ModelSim, and Python
 
-**Bộ nhân ma trận 2×2 bằng Systolic Array – Verilog, ModelSim và Python**
+## File Descriptions
 
-     **PE.v**
+### `PE.v`
 
-Ý nghĩa: File này định nghĩa một Processing Element (PE), tức một khối xử lý cơ bản trong mảng systolic. PE thực hiện phép nhân–cộng dồn MAC, đồng thời giữ và truyền dữ liệu sang PE kế tiếp.
-Cách hoạt động: Ở mỗi cạnh lên của clock, PE nhận hai số có dấu 8 bit A và B, tính tích A×B rồi cộng vào thanh ghi tích lũy. Tích của hai số 8 bit cần 16 bit. Vì một phần tử của ma trận C là tổng của hai tích nên thanh ghi kết quả cần 17 bit để tránh tràn. Dữ liệu A được chuyển sang phải và dữ liệu B được chuyển xuống dưới.
-Ví dụ minh họa:
-Giả sử PE đang tính C00:
-Chu kỳ 1: A00 = 1, B00 = 5  → accumulator = 0 + 1×5 = 5
-Chu kỳ 2: A01 = 2, B10 = 7  → accumulator = 5 + 2×7 = 19
-Kết quả cuối cùng: C00 = 19
+**Purpose:** This file defines a Processing Element (PE), the fundamental processing unit of the systolic array. Each PE performs a multiply–accumulate (MAC) operation while storing and forwarding data to the next PE.
 
-Trường hợp biên: (-128)×(-128) + (-128)×(-128) = 32768,
-vì vậy cần đầu ra signed 17 bit.
+**How it works:** At every rising clock edge, the PE receives two signed 8-bit values, A and B. It calculates `A × B` and adds the product to an accumulator register. The product of two 8-bit values requires 16 bits. Because each output element of matrix C is the sum of two products, a signed 17-bit accumulator is used to prevent overflow. Matrix A data moves horizontally to the right, while matrix B data moves vertically downward.
 
-     **SystolicArray2x2.v**
+**Example:** Assume that the PE is calculating `C00`:
 
-Ý nghĩa: Đây là module RTL chính, ghép bốn PE thành mảng systolic 2×2. Bốn PE tương ứng với bốn phần tử C00, C01, C10 và C11 của ma trận kết quả.
-Cách hoạt động: Module phân phối dữ liệu ma trận A theo chiều ngang và dữ liệu ma trận B theo chiều dọc. Các PE hoạt động song song theo clock. Mỗi PE thực hiện hai lần MAC để hoàn thành một phần tử C. Module cũng nhận reset để xóa kết quả cũ và xuất bốn giá trị signed 17 bit. Đây là file được tổng hợp để triển khai lên FPGA.
-Ví dụ minh họa:
+```text
+Cycle 1: A00 = 1, B00 = 5  → accumulator = 0 + 1×5 = 5
+Cycle 2: A01 = 2, B10 = 7  → accumulator = 5 + 2×7 = 19
+Final result: C00 = 19
+```
+
+Boundary case:
+
+```text
+(-128)×(-128) + (-128)×(-128) = 32768
+```
+
+Therefore, a signed 17-bit output is required.
+
+### `SystolicArray2x2.v`
+
+**Purpose:** This is the main RTL module. It connects four PEs to form a 2×2 systolic array. The four PEs calculate the four output elements `C00`, `C01`, `C10`, and `C11`.
+
+**How it works:** The module distributes matrix A data horizontally and matrix B data vertically. All PEs operate in parallel under the same clock. Each PE performs two MAC operations to calculate one element of matrix C. The module also receives a reset signal to clear previous results and produces four signed 17-bit outputs. This module, together with `PE.v`, can be synthesized and implemented on an FPGA.
+
+**Example:**
+
+```text
 A = [[1, 2],        B = [[5, 6],
      [3, 4]]             [7, 8]]
 
 C00 = 1×5 + 2×7 = 19     C01 = 1×6 + 2×8 = 22
 C10 = 3×5 + 4×7 = 43     C11 = 3×6 + 4×8 = 50
 
-Kết quả C = [[19, 22], [43, 50]].
+Result: C = [[19, 22], [43, 50]]
+```
 
+### `matrix_mult_2x2_tb.v`
 
+**Purpose:** This is the testbench used to simulate and verify the two RTL files in ModelSim. A testbench is not physical hardware, so it is not synthesized or programmed onto the FPGA.
 
-     **matrix_mult_2x2_tb.v**
+**How it works:** The file generates the clock, activates reset, reads each test case from `input_vectors.txt`, and applies the eight matrix elements `A00…A11` and `B00…B11` to the design. After the required number of cycles, the testbench reads `C00…C11` and prints the output matrix in the ModelSim Transcript window or writes it to a file for Python verification. This process is repeated for every test case.
 
-Ý nghĩa: Đây là testbench dùng để mô phỏng và kiểm tra hai file RTL trên ModelSim. Testbench không phải mạch phần cứng thực tế nên không được tổng hợp hoặc nạp lên FPGA.
-Cách hoạt động: File tạo clock, kích hoạt reset, đọc từng test case từ input_vectors.txt và đưa tám phần tử A00…A11, B00…B11 vào thiết kế. Sau số chu kỳ cần thiết, testbench đọc C00…C11, in ma trận kết quả ra cửa sổ Transcript hoặc ghi ra file để Python kiểm tra. Nó lặp lại quy trình cho toàn bộ test case.
-Ví dụ minh họa:
-Ví dụ một lần mô phỏng:
-Reset = 1 → xóa kết quả trong các PE
-Reset = 0 → đưa A = [[1,2],[3,4]], B = [[5,6],[7,8]]
-Chờ mạch hoàn thành → đọc C = [[19,22],[43,50]]
-Transcript có thể in: TEST 1 - Positive basic - COMPLETED
+**Simulation example:**
 
-     **input_vectors.txt**
+```text
+Reset = 1 → clear the PE results
+Reset = 0 → apply A = [[1,2],[3,4]], B = [[5,6],[7,8]]
+Wait until the circuit finishes → read C = [[19,22],[43,50]]
+Possible Transcript output: TEST 1 - Positive basic - COMPLETED
+```
 
-Ý nghĩa: File văn bản chứa dữ liệu đầu vào cho tất cả phép thử. Nhờ đọc dữ liệu từ file, testbench có thể chạy nhiều ma trận tự động mà không cần sửa lại mã Verilog.
-Cách hoạt động: Mỗi dòng thường chứa tám số có dấu 8 bit: bốn phần tử của A rồi đến bốn phần tử của B. Các test case nên bao phủ số dương, số âm, số 0, ma trận đơn vị, giá trị -128/127, ma trận toàn âm, kết quả bằng 0, đổi dấu và trường hợp gần giới hạn tràn.
-Ví dụ minh họa:
-Dòng dữ liệu:
+### `input_vectors.txt`
+
+**Purpose:** This text file contains the input data for all test cases. By reading data from a file, the testbench can automatically test many matrices without modifying the Verilog source code.
+
+**How it works:** Each line normally contains eight signed 8-bit values: four elements of matrix A followed by four elements of matrix B. The tests should cover positive numbers, negative numbers, zeros, identity matrices, the boundary values `-128` and `127`, all-negative matrices, zero results, sign changes, and values near the overflow limit.
+
+**Example line:**
+
+```text
 1 2 3 4 5 6 7 8
+```
 
-Được hiểu là:
-A = [[1,2],[3,4]] và B = [[5,6],[7,8]]
-Kết quả mong đợi: C = [[19,22],[43,50]].
+This line represents:
 
+```text
+A = [[1,2],[3,4]]
+B = [[5,6],[7,8]]
+Expected C = [[19,22],[43,50]]
+```
 
+### `test_case_names.txt`
 
-     **test_case_names.txt**
+**Purpose:** This file contains the name or label of every test case in the same order as the data lines in `input_vectors.txt`. It makes the simulation results easier to read and helps identify which test has failed.
 
-Ý nghĩa: File chứa tên hoặc nhãn của từng test case, theo đúng thứ tự các dòng dữ liệu trong input_vectors.txt. Nó giúp kết quả mô phỏng dễ đọc và dễ xác định phép thử nào bị sai.
-Cách hoạt động: Khi testbench xử lý dòng thứ n trong input_vectors.txt, nó lấy dòng thứ n trong test_case_names.txt làm tên hiển thị. Vì vậy số lượng và thứ tự tên test nên khớp với số lượng và thứ tự các bộ ma trận đầu vào.
-Ví dụ minh họa:
-Ví dụ nội dung:
+**How it works:** When the testbench processes line `n` from `input_vectors.txt`, it uses line `n` from `test_case_names.txt` as the displayed test name. Therefore, the number and order of names must match the number and order of the input vectors.
+
+**Example content:**
+
+```text
 Positive basic
 Contains negative values
 Zero matrix A
 Identity matrix
 Maximum and minimum values
+```
 
-Nếu phép thử thứ 2 sai, ModelSim/Python có thể báo:
-MISMATCH - Contains negative values.
+If the second test fails, ModelSim or Python may report:
 
+```text
+MISMATCH - Contains negative values
+```
 
+### `gen_test_vectors.py`
 
-     **gen_test_vectors.py**
+**Purpose:** This Python program creates matrix test cases and writes them to `input_vectors.txt`. It provides the input data for automated verification.
 
-Ý nghĩa: Chương trình Python dùng để tạo các bộ ma trận kiểm tra và ghi chúng vào input_vectors.txt. Đây là phần tạo dữ liệu đầu vào cho quá trình kiểm chứng tự động.
-Cách hoạt động: Chương trình có thể chứa các test cố định và sinh thêm ma trận ngẫu nhiên. Trước khi ghi file, nó kiểm tra mọi phần tử nằm trong phạm vi signed 8 bit từ -128 đến 127. Chương trình cũng có thể tính trước kết quả phần mềm để phục vụ đối chiếu.
-Ví dụ minh họa:
-Ví dụ Python sinh:
+**How it works:** The program can include fixed tests and generate additional random matrices. Before writing the data, it checks that every element is within the signed 8-bit range from `-128` to `127`. It may also calculate the expected software result for later comparison.
+
+**Example generated data:**
+
+```text
 A = [[-1, 2], [3, -4]]
 B = [[5, -6], [-7, 8]]
 
-Dòng ghi vào input_vectors.txt:
+Line written to input_vectors.txt:
 -1 2 3 -4 5 -6 -7 8
 
-Kết quả phần mềm: C = [[-19, 22], [43, -50]].
+Software result: C = [[-19, 22], [43, -50]]
+```
 
-     **show_matrices.py**
+### `show_matrices.py`
 
-Ý nghĩa: Chương trình Python dùng để hiển thị dữ liệu dưới dạng ma trận 2×2 dễ đọc. File này chủ yếu hỗ trợ quan sát và trình bày, không điều khiển FPGA và không thay đổi kết quả mô phỏng.
-Cách hoạt động: Chương trình đọc tám giá trị đầu vào hoặc kết quả đã lưu, sau đó sắp xếp thành các hàng và cột của A, B, C. Điều này giúp phát hiện nhanh việc nhập sai thứ tự phần tử.
-Ví dụ minh họa:
-Thay vì hiển thị: 1 2 3 4 5 6 7 8
-Chương trình in:
+**Purpose:** This Python program displays data in an easy-to-read 2×2 matrix format. It is used for visualization and presentation only; it does not control the FPGA or modify the simulation results.
+
+**How it works:** The program reads eight input values or saved output values and arranges them into the rows and columns of matrices A, B, and C. This helps detect incorrect element ordering.
+
+**Example output:**
+
+```text
 Matrix A:        Matrix B:
 [1  2]           [5  6]
 [3  4]           [7  8]
@@ -107,39 +143,45 @@ Matrix A:        Matrix B:
 Result C:
 [19 22]
 [43 50]
+```
 
+### `verify_results.py`
 
+**Purpose:** This is the golden-model verification program. It checks whether the Verilog circuit produces the same matrix-multiplication result as the software calculation.
 
-     **verify_results.py**
+**How it works:** The program reads matrices A and B, calculates the expected matrix C using the matrix-multiplication formula, and then reads the actual result generated by ModelSim and the testbench. It compares `C00`, `C01`, `C10`, and `C11` for every test case, counts matches and mismatches, and reports the final result.
 
-Ý nghĩa: Đây là chương trình kiểm chứng theo mô hình chuẩn (golden model). Nó xác nhận mạch Verilog có cho kết quả giống phép nhân ma trận được tính bằng phần mềm hay không.
-Cách hoạt động: Chương trình đọc A và B, tự tính expected C bằng công thức nhân ma trận, sau đó đọc actual C do ModelSim/testbench tạo ra. Nó so sánh lần lượt C00, C01, C10, C11 của từng test case, đếm match/mismatch và đưa ra kết luận cuối cùng.
-Ví dụ minh họa:
-Ví dụ kết quả đúng:
+**Correct-result example:**
+
+```text
 Expected: [[19,22],[43,50]]
 ModelSim: [[19,22],[43,50]]
 MATCH = 4, MISMATCH = 0 → PASS
+```
 
-Ví dụ nếu ModelSim cho C11 = 49:
+**Mismatch example:**
+
+```text
 Expected C11 = 50, Actual C11 = 49
-MATCH = 3, MISMATCH = 1 → FAIL.
+MATCH = 3, MISMATCH = 1 → FAIL
+```
 
-Ghi chú: Hai file RTL chính để tổng hợp phần cứng là PE.v và SystolicArray2x2.v. Các file còn lại phục vụ tạo dữ liệu, mô phỏng, hiển thị và kiểm chứng kết quả.
+> **Note:** The two main RTL files used for hardware synthesis are `PE.v` and `SystolicArray2x2.v`. The remaining files are used for test generation, simulation, visualization, and result verification.
 
+---
 
+# Step-by-Step Block Diagrams
 
-# Sơ đồ khối theo từng bước – Bộ nhân ma trận 2×2 Systolic Array
+## Step 1. Generate Test Data with Python
 
-## Bước 1. Tạo dữ liệu kiểm tra bằng Python
-
-`gen_test_vectors.py` tạo các ma trận A, B có phần tử signed 8 bit và ghi dữ liệu kiểm tra ra hai file văn bản.
+`gen_test_vectors.py` creates matrices A and B with signed 8-bit elements and writes the test data to two text files.
 
 ```mermaid
 flowchart LR
-    PY["gen_test_vectors.py<br/>Tạo ma trận A và B"]
-    CHECK["Kiểm tra phạm vi<br/>-128 đến 127"]
-    INPUT["input_vectors.txt<br/>Lưu 8 phần tử A và B"]
-    NAME["test_case_names.txt<br/>Lưu tên test case"]
+    PY["gen_test_vectors.py<br/>Generate matrices A and B"]
+    CHECK["Check signed 8-bit range<br/>-128 to 127"]
+    INPUT["input_vectors.txt<br/>Store 8 elements of A and B"]
+    NAME["test_case_names.txt<br/>Store test-case names"]
 
     PY --> CHECK
     CHECK --> INPUT
@@ -151,19 +193,19 @@ flowchart LR
     class INPUT,NAME data;
 ```
 
-Ví dụ một dòng trong `input_vectors.txt`:
+Example line in `input_vectors.txt`:
 
 ```text
 1 2 3 4 5 6 7 8
 ```
 
-Tương ứng với `A = [[1,2],[3,4]]` và `B = [[5,6],[7,8]]`.
+This represents `A = [[1,2],[3,4]]` and `B = [[5,6],[7,8]]`.
 
 ---
 
-## Bước 2. Testbench đưa dữ liệu vào thiết kế
+## Step 2. Apply Test Data to the Design
 
-Testbench đọc từng bộ dữ liệu, tạo clock/reset/start và đưa các phần tử ma trận vào DUT trên ModelSim.
+The testbench reads each data set, generates the clock, reset, and start signals, and applies the matrix elements to the DUT in ModelSim.
 
 ```mermaid
 flowchart LR
@@ -171,10 +213,10 @@ flowchart LR
     NAME["test_case_names.txt"]
     TB["matrix_mult_2x2_tb.v<br/>Testbench"]
     SIGNAL["clk • rst_n • start<br/>A00…A11 • B00…B11"]
-    DUT["DUT<br/>Systolic Array 2×2"]
+    DUT["DUT<br/>2×2 Systolic Array"]
 
-    INPUT -->|đọc A và B| TB
-    NAME -->|đọc tên test| TB
+    INPUT -->|Read A and B| TB
+    NAME -->|Read test name| TB
     TB --> SIGNAL
     SIGNAL --> DUT
 
@@ -186,27 +228,27 @@ flowchart LR
     class DUT hardware;
 ```
 
-Project `matmul2x2.mpf` lưu các thiết lập ModelSim để compile và chạy testbench.
+The `matmul2x2.mpf` project file stores the ModelSim settings required to compile and run the testbench.
 
 ---
 
-## Bước 3. Kiến trúc bên trong DUT
+## Step 3. Internal DUT Architecture
 
-DUT gồm thanh ghi đầu vào, bộ điều khiển FSM, mảng 4 PE và thanh ghi kết quả.
+The DUT contains input registers, a control FSM, a four-PE array, and output registers.
 
 ```mermaid
 flowchart LR
     AREG["A registers<br/>A00 A01 A10 A11<br/>signed 8-bit"]
     BREG["B registers<br/>B00 B01 B10 B11<br/>signed 8-bit"]
     FSM["Control FSM<br/>IDLE → LOAD → CALC → DONE"]
-    ARRAY["SystolicArray2x2.v<br/>4 × PE.v<br/>MAC song song"]
+    ARRAY["SystolicArray2x2.v<br/>4 × PE.v<br/>Parallel MAC operations"]
     OUT["Output registers<br/>C00 C01 C10 C11<br/>signed 17-bit"]
     VALID["done / valid"]
 
     AREG --> ARRAY
     BREG --> ARRAY
-    FSM -. điều khiển .-> AREG
-    FSM -. điều khiển .-> BREG
+    FSM -. control .-> AREG
+    FSM -. control .-> BREG
     FSM -. enable .-> ARRAY
     ARRAY --> OUT
     OUT --> VALID
@@ -221,27 +263,27 @@ flowchart LR
     class OUT,VALID result;
 ```
 
-Hai file RTL chính của DUT là `PE.v` và `SystolicArray2x2.v`.
+The two main RTL files in the DUT are `PE.v` and `SystolicArray2x2.v`.
 
 ---
 
-## Bước 4. Luồng dữ liệu trong mảng 4 PE
+## Step 4. Data Flow Through the Four-PE Array
 
-Ma trận A truyền theo chiều ngang, ma trận B truyền theo chiều dọc. Mỗi PE thực hiện hai lần nhân–cộng dồn để tạo một phần tử C.
+Matrix A moves horizontally, while matrix B moves vertically. Each PE performs two multiply–accumulate operations to calculate one element of matrix C.
 
 ```mermaid
 flowchart TB
-    B0["B cột 0"] --> PE00
-    B1["B cột 1"] --> PE01
+    B0["Column 0 of B"] --> PE00
+    B1["Column 1 of B"] --> PE01
 
-    A0["A hàng 0"] --> PE00["PE00<br/>MAC → C00"]
-    PE00 -->|A truyền ngang| PE01["PE01<br/>MAC → C01"]
+    A0["Row 0 of A"] --> PE00["PE00<br/>MAC → C00"]
+    PE00 -->|A moves horizontally| PE01["PE01<br/>MAC → C01"]
 
-    A1["A hàng 1"] --> PE10["PE10<br/>MAC → C10"]
-    PE10 -->|A truyền ngang| PE11["PE11<br/>MAC → C11"]
+    A1["Row 1 of A"] --> PE10["PE10<br/>MAC → C10"]
+    PE10 -->|A moves horizontally| PE11["PE11<br/>MAC → C11"]
 
-    PE00 -->|B truyền dọc| PE10
-    PE01 -->|B truyền dọc| PE11
+    PE00 -->|B moves vertically| PE10
+    PE01 -->|B moves vertically| PE11
 
     classDef input fill:#FFF4D6,stroke:#B8860B,stroke-width:2px,color:#4A3600;
     classDef pe fill:#E5FBF8,stroke:#008C95,stroke-width:2px,color:#003F44;
@@ -249,7 +291,7 @@ flowchart TB
     class PE00,PE01,PE10,PE11 pe;
 ```
 
-Ví dụ:
+Matrix-multiplication equations:
 
 ```text
 C00 = A00×B00 + A01×B10
@@ -260,26 +302,26 @@ C11 = A10×B01 + A11×B11
 
 ---
 
-## Bước 5. Thu và kiểm chứng kết quả
+## Step 5. Collect and Verify the Results
 
-Khi `done/valid = 1`, testbench đọc bốn phần tử C. Python tính kết quả chuẩn và so sánh từng phần tử.
+When `done/valid = 1`, the testbench reads the four output elements. Python calculates the golden result and compares every element.
 
 ```mermaid
 flowchart LR
-    DUT["DUT hoàn thành<br/>done / valid = 1"]
-    ACTUAL["Kết quả ModelSim<br/>actual C"]
-    EXPECTED["Python tính A×B<br/>expected C"]
-    VERIFY["verify_results.py<br/>So sánh C00…C11"]
+    DUT["DUT complete<br/>done / valid = 1"]
+    ACTUAL["ModelSim result<br/>actual C"]
+    EXPECTED["Python calculates A×B<br/>expected C"]
+    VERIFY["verify_results.py<br/>Compare C00…C11"]
     PASS["PASS<br/>MISMATCH = 0"]
     FAIL["FAIL<br/>MISMATCH > 0"]
-    SHOW["show_matrices.py<br/>Hiển thị A, B, C"]
+    SHOW["show_matrices.py<br/>Display A, B, and C"]
 
     DUT --> ACTUAL
     ACTUAL --> VERIFY
     EXPECTED --> VERIFY
     ACTUAL --> SHOW
-    VERIFY -->|tất cả giống nhau| PASS
-    VERIFY -->|có phần tử khác| FAIL
+    VERIFY -->|All elements match| PASS
+    VERIFY -->|An element differs| FAIL
 
     classDef software fill:#E8F1FB,stroke:#1F4E79,stroke-width:2px,color:#0B2545;
     classDef result fill:#EAF7EA,stroke:#2E7D32,stroke-width:2px,color:#174A1A;
@@ -290,7 +332,7 @@ flowchart LR
     class FAIL error;
 ```
 
-Ví dụ kết quả đúng:
+Correct-result example:
 
 ```text
 Expected: [[19,22],[43,50]]
@@ -300,18 +342,18 @@ MATCH = 4, MISMATCH = 0 → PASS
 
 ---
 
-## Bước 6. Triển khai thiết kế lên FPGA
+## Step 6. Implement the Design on an FPGA
 
-Sau khi mô phỏng và kiểm chứng thành công, hai file RTL được tổng hợp để tạo bitstream và nạp lên FPGA.
+After successful simulation and verification, the two RTL files are synthesized to generate a bitstream for the FPGA.
 
 ```mermaid
 flowchart LR
     RTL["Verilog RTL<br/>PE.v + SystolicArray2x2.v"]
-    SIM["Mô phỏng ModelSim<br/>PASS"]
+    SIM["ModelSim simulation<br/>PASS"]
     SYN["Synthesis"]
     PNR["Place & Route"]
-    BIT["Tạo Bitstream"]
-    FPGA["Nạp lên FPGA"]
+    BIT["Generate bitstream"]
+    FPGA["Program the FPGA"]
 
     RTL --> SIM
     SIM --> SYN
@@ -327,18 +369,18 @@ flowchart LR
     class FPGA target;
 ```
 
-## Tóm tắt luồng hoạt động
+## Workflow Summary
 
 ```text
-Python tạo dữ liệu
+Python generates the test data
         ↓
-Testbench đọc dữ liệu và điều khiển DUT
+The testbench reads the data and controls the DUT
         ↓
-4 PE thực hiện nhân–cộng dồn
+Four PEs perform multiply–accumulate operations
         ↓
-ModelSim xuất ma trận C
+ModelSim produces matrix C
         ↓
-Python so sánh và báo PASS/FAIL
+Python compares the results and reports PASS or FAIL
         ↓
-Tổng hợp và nạp thiết kế lên FPGA
+The design is synthesized and programmed onto the FPGA
 ```
