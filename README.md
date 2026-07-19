@@ -561,7 +561,7 @@ flowchart TB
 
 ## Requirements
 
-- ModelSim or QuestaSim with Verilog support
+- ModelSim with Verilog support
 - Python 3.9 or newer
 - NumPy
 
