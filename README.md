@@ -9,7 +9,7 @@ The design is verified with a file-driven ModelSim testbench and an independent 
 ## Authors
 
 **Võ Hoàng Minh Lộc · Trần Thiên Phúc**  
-**Advisor: Dr. Phạm Thế Vinh** 
+**Advisor: ThS. Phạm Thế Vinh** 
 
 Faculty of Semiconductor Integrated Circuits and Automotive Engineering, FPT University Ho Chi Minh City Campus, Vietnam
 
