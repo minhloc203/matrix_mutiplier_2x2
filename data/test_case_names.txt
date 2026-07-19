@@ -1,0 +1,30 @@
+Ma tran A va B deu bang 0
+Ma tran don vi nhan ma tran bat ky (I x B = B)
+Ma tran bat ky nhan ma tran don vi (A x I = A)
+Ca hai ma tran deu toan so am
+Gia tri lon nhat 127
+Gia tri nho nhat -128 (gan tran so - overflow)
+Gan overflow - pha tron cuc tri 127 va -128
+Doi dau trong qua trinh cong don
+Ket qua C bang 0
+So 0 xen ke voi so am va duong
+Test ngau nhien so 1
+Test ngau nhien so 2
+Test ngau nhien so 3
+Test ngau nhien so 4
+Test ngau nhien so 5
+Test ngau nhien so 6
+Test ngau nhien so 7
+Test ngau nhien so 8
+Test ngau nhien so 9
+Test ngau nhien so 10
+Test ngau nhien so 11
+Test ngau nhien so 12
+Test ngau nhien so 13
+Test ngau nhien so 14
+Test ngau nhien so 15
+Test ngau nhien so 16
+Test ngau nhien so 17
+Test ngau nhien so 18
+Test ngau nhien so 19
+Test ngau nhien so 20
