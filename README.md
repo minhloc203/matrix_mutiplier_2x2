@@ -69,17 +69,6 @@ Maximum and minimum values
 Nếu phép thử thứ 2 sai, ModelSim/Python có thể báo:
 MISMATCH - Contains negative values.
 
-**matmul2x2.mpf**
-
-Ý nghĩa: Đây là file project của ModelSim, dùng để lưu cấu hình mô phỏng. File không chứa công thức nhân ma trận và không phải mã Verilog để nạp lên FPGA.
-Cách hoạt động: File ghi lại danh sách PE.v, SystolicArray2x2.v, matrix_mult_2x2_tb.v, thư viện mô phỏng và những thiết lập liên quan. Khi mở matmul2x2.mpf, người dùng có thể compile lại các module và chạy simulation mà không cần tạo project mới.
-Ví dụ minh họa:
-Quy trình sử dụng:
-1. Mở matmul2x2.mpf trong ModelSim.
-2. Compile PE.v, SystolicArray2x2.v và matrix_mult_2x2_tb.v.
-3. Chọn testbench làm top-level simulation.
-4. Run mô phỏng và xem kết quả trong Transcript/Wave.
-
 
 
 **gen_test_vectors.py**
