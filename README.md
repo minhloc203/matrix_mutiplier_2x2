@@ -394,9 +394,10 @@ Result: PASS
 ## Step-by-Step Block Diagrams
 
 The following Mermaid diagrams are embedded directly in this README. GitHub renders them automatically, so no PNG or external image directory is required.
-<img width="2560" height="1440" alt="SystolicArray2x2_high_level_RTL" src="https://github.com/user-attachments/assets/99faefa4-b3a0-4c43-8e5f-3da86fee26bd" />
+
 
 ### Step 1 — Generate Test Data
+<img width="2560" height="1440" alt="SystolicArray2x2_high_level_RTL " src="https://github.com/user-attachments/assets/9590e653-4212-4d72-a1ce-a303e2e6bc2f" />
 
 `gen_test_vectors.py` creates signed INT8 matrices and writes both the numerical vectors and their test labels.
 
